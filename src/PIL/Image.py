@@ -39,6 +39,8 @@ from collections.abc import Callable, MutableMapping
 from enum import IntEnum
 from pathlib import Path
 
+from constants import *
+
 try:
     import defusedxml.ElementTree as ElementTree
 except ImportError:
@@ -127,71 +129,6 @@ def isImageType(t):
     :returns: True if the object is an image
     """
     return hasattr(t, "im")
-
-
-#
-# Constants
-
-
-# transpose
-class Transpose(IntEnum):
-    FLIP_LEFT_RIGHT = 0
-    FLIP_TOP_BOTTOM = 1
-    ROTATE_90 = 2
-    ROTATE_180 = 3
-    ROTATE_270 = 4
-    TRANSPOSE = 5
-    TRANSVERSE = 6
-
-
-# transforms (also defined in Imaging.h)
-class Transform(IntEnum):
-    AFFINE = 0
-    EXTENT = 1
-    PERSPECTIVE = 2
-    QUAD = 3
-    MESH = 4
-
-
-# resampling filters (also defined in Imaging.h)
-class Resampling(IntEnum):
-    NEAREST = 0
-    BOX = 4
-    BILINEAR = 2
-    HAMMING = 5
-    BICUBIC = 3
-    LANCZOS = 1
-
-
-_filters_support = {
-    Resampling.BOX: 0.5,
-    Resampling.BILINEAR: 1.0,
-    Resampling.HAMMING: 1.0,
-    Resampling.BICUBIC: 2.0,
-    Resampling.LANCZOS: 3.0,
-}
-
-
-# dithers
-class Dither(IntEnum):
-    NONE = 0
-    ORDERED = 1  # Not yet implemented
-    RASTERIZE = 2  # Not yet implemented
-    FLOYDSTEINBERG = 3  # default
-
-
-# palettes/quantizers
-class Palette(IntEnum):
-    WEB = 0
-    ADAPTIVE = 1
-
-
-class Quantize(IntEnum):
-    MEDIANCUT = 0
-    MAXCOVERAGE = 1
-    FASTOCTREE = 2
-    LIBIMAGEQUANT = 3
-
 
 module = sys.modules[__name__]
 for enum in (Transpose, Transform, Resampling, Dither, Palette, Quantize):
@@ -403,7 +340,7 @@ def _getencoder(mode, encoder_name, args, extra=()):
     try:
         encoder = ENCODERS[encoder_name]
     except KeyError:
-        pass
+        passMAX_IMAGE_PIXELS
     else:
         return encoder(mode, *args + extra)
 
@@ -479,7 +416,7 @@ class Image:
     format_description = None
     _close_exclusive_fp_after_loading = True
 
-    def __init__(self):
+    def __init__(self, backend : Backend = Backend.HOST):
         # FIXME: take "new" parameters / other image?
         # FIXME: turn mode and size into delegating properties?
         self.im = None
@@ -490,6 +427,7 @@ class Image:
         self.readonly = 0
         self.pyaccess = None
         self._exif = None
+        self.backend = backend
 
     @property
     def width(self):
